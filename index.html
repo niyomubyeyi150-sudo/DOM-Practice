@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+   
+</head>
+<body>
+ 
+<nav>
+  <div class="logo">Task<span>Flow</span></div>
+
+  <div class="search-wrap">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+    </svg>
+    <input type="text" id="searchInput" placeholder="Search tasks…" autocomplete="off">
+  </div>
+
+  <select id="categoryFilter">
+    <option value="">All Categories</option>
+    <option value="design">Design</option>
+    <option value="dev">Dev</option>
+    <option value="research">Research</option>
+    <option value="ops">Ops</option>
+    <option value="other">Other</option>
+  </select>
+
+  <div class="nav-right">
+    <label class="theme-toggle" id="themeToggle" title="Toggle theme">
+      <span class="toggle-track"><span class="toggle-thumb"></span></span>
+      <span class="toggle-label" id="themeLabel">LIGHT</span>
+    </label>
+  </div>
+</nav>
+
+
+<main>
+
+  
+  <div class="analytics">
+    <div class="stat-card todo">
+      <span class="stat-label">To Do</span>
+      <span class="stat-value" id="countTodo">0</span>
+    </div>
+    <div class="stat-card inprog">
+      <span class="stat-label">In Progress</span>
+      <span class="stat-value" id="countInprog">0</span>
+    </div>
+    <div class="stat-card done">
+      <span class="stat-label">Done</span>
+      <span class="stat-value" id="countDone">0</span>
+    </div>
+    <div class="stat-card" style="flex:2;min-width:200px;">
+      <span class="stat-label">Completion</span>
+      <span class="stat-value" id="countPct">—</span>
+      <div class="progress-bar-wrap">
+        <div class="progress-bar" id="progressBar" style="width:0%"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOOLBAR -->
+  <div class="toolbar">
+    <button class="btn-primary" id="newTaskBtn">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+      New Task
+    </button>
+  </div>
+
+  <!-- BOARD -->
+  <div class="board-wrapper" id="boardWrapper">
+
+    <div class="column" data-col="todo">
+      <div class="col-header">
+        <span class="col-dot"></span>
+        <span class="col-title">To Do</span>
+        <span class="col-count" id="badgeTodo">0</span>
+      </div>
+      <div class="task-list" id="listTodo"></div>
+    </div>
+
+    <div class="column" data-col="inprogress">
+      <div class="col-header">
+        <span class="col-dot"></span>
+        <span class="col-title">In Progress</span>
+        <span class="col-count" id="badgeInprog">0</span>
+      </div>
+      <div class="task-list" id="listInprogress"></div>
+    </div>
+
+    <div class="column" data-col="done">
+      <div class="col-header">
+        <span class="col-dot"></span>
+        <span class="col-title">Done</span>
+        <span class="col-count" id="badgeDone">0</span>
+      </div>
+      <div class="task-list" id="listDone"></div>
+    </div>
+
+  </div>
+</main>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="modal-title" id="modalTitle">New Task</div>
+
+    <div class="form-group">
+      <label for="taskTitle">Title</label>
+      <input type="text" id="taskTitle" placeholder="What needs to be done?" maxlength="120">
+    </div>
+
+    <div class="form-group">
+      <label for="taskDesc">Description (optional)</label>
+      <textarea id="taskDesc" rows="2" placeholder="Add details…"></textarea>
+    </div>
+
+    <div style="display:flex;gap:0.75rem;">
+      <div class="form-group" style="flex:1">
+        <label for="taskPriority">Priority</label>
+        <select id="taskPriority">
+          <option value="medium">Medium</option>
+          <option value="high">High</option>
+          <option value="low">Low</option>
+        </select>
+      </div>
+      <div class="form-group" style="flex:1">
+        <label for="taskCategory">Category</label>
+        <select id="taskCategory">
+          <option value="design">Design</option>
+          <option value="dev">Dev</option>
+          <option value="research">Research</option>
+          <option value="ops">Ops</option>
+          <option value="other">Other</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn-ghost" id="cancelBtn">Cancel</button>
+      <button class="btn-primary" id="saveTaskBtn">Add Task</button>
+    </div>
+  </div>
+</div>   
+
+<script>
+// ── STATE ──────────────────────────────────────────────────────────────────
+let tasks = [];   // [{ id, title, desc, priority, category, col, createdAt }]
+let idCounter = 1;
+
+// ── STORAGE ────────────────────────────────────────────────────────────────
+function saveState() {
+  localStorage.setItem('taskflow_tasks', JSON.stringify(tasks));
+  localStorage.setItem('taskflow_counter', String(idCounter));
+  localStorage.setItem('taskflow_theme', document.documentElement.getAttribute('data-theme'));
+}
+
+function loadState() {
+  const saved = localStorage.getItem('taskflow_tasks');
+  const counter = localStorage.getItem('taskflow_counter');
+  const theme = localStorage.getItem('taskflow_theme');
+  if (saved) tasks = JSON.parse(saved);
+  if (counter) idCounter = parseInt(counter, 10);
+  if (theme) applyTheme(theme);
+}
+
+// ── THEME ──────────────────────────────────────────────────────────────────
+function applyTheme(theme) {
+  document.documentElement.setAttribute('data-theme', theme);
+  document.getElementById('themeLabel').textContent = theme.toUpperCase();
+}
+
+document.getElementById('themeToggle').addEventListener('click', () => {
+  const cur = document.documentElement.getAttribute('data-theme');
+  applyTheme(cur === 'light' ? 'dark' : 'light');
+  saveState();
+});
+
+// ── MODAL ──────────────────────────────────────────────────────────────────
+const overlay = document.getElementById('modalOverlay');
+
+function openModal() {
+  overlay.classList.add('open');
+  document.getElementById('taskTitle').focus();
+}
+
+function closeModal() {
+  overlay.classList.remove('open');
+  document.getElementById('taskTitle').value = '';
+  document.getElementById('taskDesc').value = '';
+  document.getElementById('taskPriority').value = 'medium';
+  document.getElementById('taskCategory').value = 'design';
+}
+
+document.getElementById('newTaskBtn').addEventListener('click', openModal);
+document.getElementById('cancelBtn').addEventListener('click', closeModal);
+document.getElementById('saveTaskBtn').addEventListener('click', () => {
+
+  const title = document.getElementById('taskTitle').value.trim();
+  if (!title) { document.getElementById('taskTitle').focus(); return; }
+
+  const task = {
+    id: idCounter++,
+    title,
+    desc: document.getElementById('taskDesc').value.trim(),
+    priority: document.getElementById('taskPriority').value,
+    category: document.getElementById('taskCategory').value,
+    col: 'todo',
+    createdAt: Date.now()
+  };
+
+  tasks.push(task);
+  renderCard(task);
+  updateAnalytics();
+  saveState();
+  closeModal();
+});
+
+overlay.addEventListener('click', e => {
+  if (e.target === overlay) closeModal();
+});
+
+document.getElementById('saveTaskBtn').addEventListener('click', e => {
+  e.preventDefault();
+  const title = document.getElementById('taskTitle').value.trim();
+  if (!title) { document.getElementById('taskTitle').focus(); return; }
+
+  const task = {
+    id: idCounter++,
+    title,
+    desc: document.getElementById('taskDesc').value.trim(),
+    priority: document.getElementById('taskPriority').value,
+    category: document.getElementById('taskCategory').value,
+    col: 'todo',
+    createdAt: Date.now()
+  };
+
+  tasks.push(task);
+  renderCard(task);
+  updateAnalytics();
+  saveState();
+  closeModal();
+});
+
+// ── RENDER CARD ────────────────────────────────────────────────────────────
+function renderCard(task) {
+  const list = document.getElementById('listTodo');
+  if (task.col === 'inprogress') return appendCard(task, document.getElementById('listInprogress'));
+    if (task.col === 'done') return appendCard(task, document.getElementById('listDone'));
+}
+  </script>
+  </body>
+</html>
