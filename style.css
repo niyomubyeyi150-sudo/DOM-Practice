@@ -247,6 +247,14 @@
     gap: 6px;
     transition: opacity 0.15s, transform 0.1s;
   }
+  .dashed-box{
+    border: 1.5px dashed #c8d0c4;
+    border-radius: 12px;
+    padding: 40px 0;
+    color: #777;
+    font-family: 'DM Mono', monospace;
+    text-align: center;
+  }
 
   .btn-primary:hover { opacity: 0.88; transform: translateY(-1px); }
   .btn-primary:active { transform: translateY(0); }

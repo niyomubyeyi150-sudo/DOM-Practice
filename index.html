@@ -15,10 +15,11 @@
   <div class="logo">Task<span>Flow</span></div>
 
   <div class="search-wrap">
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+    <svg width="14" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+      
     </svg>
-    <input type="text" id="searchInput" placeholder="Search tasks…" autocomplete="off">
+    <input type="text" id="searchInput" placeholder="Search tasks…" >
   </div>
 
   <select id="categoryFilter">
@@ -42,27 +43,28 @@
 <main>
 
   
-  <div class="analytics">
+  <section class="analytics">
     <div class="stat-card todo">
       <span class="stat-label">To Do</span>
-      <span class="stat-value" id="countTodo">0</span>
+      <span class="stat-value" id="countTodoVal">0</span>
     </div>
     <div class="stat-card inprog">
       <span class="stat-label">In Progress</span>
-      <span class="stat-value" id="countInprog">0</span>
+      <span class="stat-value" id="InprogCountVal">0</span>
     </div>
     <div class="stat-card done">
       <span class="stat-label">Done</span>
-      <span class="stat-value" id="countDone">0</span>
+      <span class="stat-value" id="DoneCountVal">0</span>
     </div>
     <div class="stat-card" style="flex:2;min-width:200px;">
       <span class="stat-label">Completion</span>
-      <span class="stat-value" id="countPct">—</span>
-      <div class="progress-bar-wrap">
-        <div class="progress-bar" id="progressBar" style="width:0%"></div>
+      <span class="stat-value" id="doneCountVal">0%</span>
+       <div class="progress-bar-wrap">
+        <span class="progress-bar">Task Progress</span>
+        <span class="stat-value" id="progressPctVal">0%</span>
       </div>
     </div>
-  </div>
+  </section>
 
   <!-- TOOLBAR -->
   <div class="toolbar">
@@ -81,12 +83,14 @@
         <span class="col-title">To Do</span>
         <span class="col-count" id="badgeTodo">0</span>
       </div>
-      <div class="task-list" id="listTodo"></div>
+      <div class="task-list" id="listTodo">
+        <div class="dashed-box">No tasks added yet</div>
+      </div>
     </div>
 
     <div class="column" data-col="inprogress">
       <div class="col-header">
-        <span class="col-dot"></span>
+        <span class="dot progress-"></span>
         <span class="col-title">In Progress</span>
         <span class="col-count" id="badgeInprog">0</span>
       </div>
@@ -199,8 +203,9 @@ function closeModal() {
 
 document.getElementById('newTaskBtn').addEventListener('click', openModal);
 document.getElementById('cancelBtn').addEventListener('click', closeModal);
-document.getElementById('saveTaskBtn').addEventListener('click', () => {
+document.getElementById('saveTaskBtn').addEventListener('click', addModal);
 
+function addModal() {
   const title = document.getElementById('taskTitle').value.trim();
   if (!title) { document.getElementById('taskTitle').focus(); return; }
 
@@ -219,7 +224,7 @@ document.getElementById('saveTaskBtn').addEventListener('click', () => {
   updateAnalytics();
   saveState();
   closeModal();
-});
+};
 
 overlay.addEventListener('click', e => {
   if (e.target === overlay) closeModal();
@@ -245,6 +250,7 @@ document.getElementById('saveTaskBtn').addEventListener('click', e => {
   updateAnalytics();
   saveState();
   closeModal();
+  addModal();
 });
 
 // ── RENDER CARD ────────────────────────────────────────────────────────────
